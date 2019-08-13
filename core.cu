@@ -7,14 +7,6 @@
 #include <device_atomic_functions.h>
 #include <device_launch_parameters.h>
 
-#ifndef __CUDACC__
-unsigned int atomicAdd(unsigned int *address, unsigned int value);
-float __shfl_up_sync(unsigned int mask, float var, unsigned int delta, int width=warpSize);
-unsigned int __activemask();
-int __popc(unsigned int x);
-void __threadfence();
-#endif
-
 #define W 32
 #define G 1024
 #define B 256
@@ -47,7 +39,7 @@ __forceinline__ __device__ static float log_sum_exp(float a, float b) {
 }
 
 __device__
-void kernel_warp_alphas(unsigned int *counts, float *alphas, const int *labels, const float *log_probs,
+void kernel_warp_alphas(unsigned int *counts, volatile float *alphas, const int *labels, const float *log_probs,
                         const int *xn, const int *yn, int T, int S, int U, int V, int blank) {
 
     unsigned int d = threadIdx.x;
@@ -140,10 +132,7 @@ void kernel_warp_alphas(unsigned int *counts, float *alphas, const int *labels, 
         alphas[idx3(n, t, u, S, U)] = output;
     }
 
-    unsigned int mask = __activemask();
-    int w = __popc(mask) - 1;
-
-    if (d == w) {
+    if (d == 0) {
         // https://stackoverflow.com/a/5233737
         __threadfence();
         atomicAdd(lock, 1);
@@ -151,7 +140,7 @@ void kernel_warp_alphas(unsigned int *counts, float *alphas, const int *labels, 
 }
 
 __device__
-void kernel_warp_betas(unsigned int *counts, float *betas, const int *labels, const float *log_probs,
+void kernel_warp_betas(unsigned int *counts, volatile float *betas, const int *labels, const float *log_probs,
                        const int *xn, const int *yn, int T, int S, int U, int V, int blank) {
 
     unsigned int d = threadIdx.x;
@@ -248,10 +237,7 @@ void kernel_warp_betas(unsigned int *counts, float *betas, const int *labels, co
         betas[idx3(n, S1-t, U1-u, S, U)] = output;
     }
 
-    unsigned int mask = __activemask();
-    int w = __popc(mask) - 1;
-
-    if (d == w) {
+    if (d == 0) {
         // https://stackoverflow.com/a/5233737
         __threadfence();
         atomicAdd(lock, 1);
@@ -259,7 +245,7 @@ void kernel_warp_betas(unsigned int *counts, float *betas, const int *labels, co
 }
 
 __global__
-void kernel_warp(unsigned int *counts, float *alphas, float *betas, const int *labels, const float *log_probs,
+void kernel_warp(unsigned int *counts, volatile float *alphas, volatile float *betas, const int *labels, const float *log_probs,
                        const int *xn, const int *yn, int T, int S, int U, int V, int blank) {
     if (threadIdx.y == 0) {
         kernel_warp_alphas(counts, alphas, labels, log_probs, xn, yn, T, S, U, V, blank);
