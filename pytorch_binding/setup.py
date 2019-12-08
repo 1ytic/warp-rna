@@ -63,7 +63,7 @@ long_description = get_long_description()
 
 setup(
     name="warp_rna",
-    version="0.1.0",
+    version="0.2.0",
     description="PyTorch bindings for CUDA-Warp Recurrent Neural Aligner",
     long_description=long_description,
     long_description_content_type="text/markdown",

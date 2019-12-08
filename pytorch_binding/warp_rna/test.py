@@ -1,7 +1,7 @@
 import torch
 import unittest
 import numpy as np
-import warp_rna._C as warp_rna_core
+import warp_rna._C as core
 
 
 xs = torch.tensor([], dtype=torch.float32)
@@ -10,25 +10,25 @@ xn = torch.tensor([], dtype=torch.int)
 yn = torch.tensor([], dtype=torch.int)
 
 
-class WRNALossTest(unittest.TestCase):
+class RNALossTest(unittest.TestCase):
 
     def test_contiguous(self):
         xs = torch.tensor(np.zeros((4, 3, 2, 1)), dtype=torch.float32).transpose(0, 1)
         with self.assertRaisesRegex(RuntimeError, "xs must be contiguous"):
-            warp_rna_core.rna_loss(xs, ys, xn, yn)
+            core.rna_loss(xs, ys, xn, yn)
 
     def test_device(self):
         with self.assertRaisesRegex(RuntimeError, "xs must be located in the CUDA"):
-            warp_rna_core.rna_loss(xs, ys, xn, yn)
+            core.rna_loss(xs, ys, xn, yn)
 
     def test_shape(self):
         with self.assertRaisesRegex(RuntimeError, "xs must have 4 dimensions"):
-            warp_rna_core.rna_loss(xs.cuda(), ys.cuda(), xn.cuda(), yn.cuda())
+            core.rna_loss(xs.cuda(), ys.cuda(), xn.cuda(), yn.cuda())
 
     def test_type(self):
         ys = torch.tensor([], dtype=torch.long)
         with self.assertRaisesRegex(RuntimeError, "ys must be a Int tensor"):
-            warp_rna_core.rna_loss(xs, ys, xn, yn)
+            core.rna_loss(xs, ys, xn, yn)
 
     def test_diagonal(self):
 
@@ -47,7 +47,7 @@ class WRNALossTest(unittest.TestCase):
         xn = torch.tensor([2], dtype=torch.int)
         yn = torch.tensor([2], dtype=torch.int)
 
-        costs, grads = warp_rna_core.rna_loss(
+        costs, grads = core.rna_loss(
             xs.cuda(), ys.cuda(),
             xn.cuda(), yn.cuda())
 
@@ -85,7 +85,7 @@ class WRNALossTest(unittest.TestCase):
         xn = torch.tensor([3], dtype=torch.int)
         yn = torch.tensor([2], dtype=torch.int)
 
-        costs, grads = warp_rna_core.rna_loss(
+        costs, grads = core.rna_loss(
             xs.cuda(), ys.cuda(),
             xn.cuda(), yn.cuda())
 
@@ -118,7 +118,7 @@ class WRNALossTest(unittest.TestCase):
         xn = torch.tensor([33], dtype=torch.int)
         yn = torch.tensor([2], dtype=torch.int)
 
-        costs, grads = warp_rna_core.rna_loss(
+        costs, grads = core.rna_loss(
             xs.cuda(), ys.cuda(),
             xn.cuda(), yn.cuda())
 
@@ -144,7 +144,7 @@ class WRNALossTest(unittest.TestCase):
         xn = torch.tensor([33, 35], dtype=torch.int)
         yn = torch.tensor([2, 3], dtype=torch.int)
 
-        costs, grads = warp_rna_core.rna_loss(
+        costs, grads = core.rna_loss(
             xs.cuda(), ys.cuda(),
             xn.cuda(), yn.cuda())
 
@@ -169,7 +169,7 @@ class WRNALossTest(unittest.TestCase):
         xn = torch.tensor([15, 15], dtype=torch.int)
         yn = torch.tensor([1, 1], dtype=torch.int)
 
-        costs, grads = warp_rna_core.rna_loss(
+        costs, grads = core.rna_loss(
             xs.cuda(), ys.cuda(),
             xn.cuda(), yn.cuda())
 
@@ -193,7 +193,7 @@ class WRNALossTest(unittest.TestCase):
         xn = torch.tensor([1], dtype=torch.int)
         yn = torch.tensor([0], dtype=torch.int)
 
-        costs, grads = warp_rna_core.rna_loss(
+        costs, grads = core.rna_loss(
             xs.cuda(), ys.cuda(),
             xn.cuda(), yn.cuda())
 
